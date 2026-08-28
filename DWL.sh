@@ -1,12 +1,11 @@
 #!/bin/bash
 
-# Переходим в папку со скриптом
 cd "$(dirname "$0")"
 
-# Меняем заголовок вкладки терминала
-echo -ne "\033]30;Download Hub\007"
+# Make window name
+echo -ne "\033]0;Download Hub\a"
 
-# Выплевываем стартовое меню
+# Note menu
 echo "======================= Ultimate Devil Download ======================="
 echo "Format: [Link] [Flag] (For example: https://youtu.be/... -4)"
 echo ""
@@ -16,130 +15,167 @@ echo "[-4] = MP4"
 echo "[-5] = FLAC"
 echo "[-6] = Link"
 echo ""
+echo "Choose your path, Samurai!"
+echo "[-D] = Desktop"
+echo "[-C] = Clips"
+echo "[-M] = Music"
+echo ""
 echo "[-exit] = Exit"
 echo "======================================================================="
 
-# Общие флаги и пути
-COOKIES="firefox:$HOME/.var/app/net.waterfox.waterfox/.waterfox/8ivjcj1i.OwlUSR"
-OUT_PATH="$HOME/Desktop/%(playlist_title,title)s/%(playlist_index&{} - |)s%(title)s.%(ext)s"
+# --- Settings ---
+# Paths and for cookies
+COOKIES="[Browser]: [Path]" #Note: write without [], just "firefox: path". All types of browsers learn on official repo of Yt-Dlp
+
+# -- Main Dirs --
+DIR_DESKTOP="$HOME/Desktop"
+DIR_CLIPS="$HOME/Videos/Clips"
+DIR_MUSIC="$HOME/Music"
+# Note: you can add many paths, just add it here and in main cycle
+
+# Template for saves
+TPL_SINGLE="%(title)s.%(ext)s" #Note: If you download one file from link, not a playlist
+TPL_PLAYLIST="%(playlist_title)s/%(playlist_index)02d - %(title)s.%(ext)s" #Note: If you download a playlist or album
+# Template for Aria2
 ARIA_ARGS="aria2c:-c -x 16 -s 16 -k 1M"
 
-# 1. Модуль для MP3
+
+# --- Modules ---
+# 1. MP3 module
 get_mp3() {
     local target_link="$1"
+    local playlist_flag="$2"
+    local final_path="$3"
+    
     echo ">> [MP3] Downloading Audio, Please Wait..."
     
     yt-dlp --cookies-from-browser "$COOKIES" --js-runtimes node \
            --downloader aria2c --downloader-args "$ARIA_ARGS" \
-           --no-playlist -f "ba/b" -x --audio-format mp3 --audio-quality 0 \
-           --embed-metadata --embed-thumbnail \
-           --ppa "EmbedThumbnail+ffmpeg_o:-c:v mjpeg -id3v2_version 3" \
-           --no-check-certificate -o "$OUT_PATH" "$target_link"
+           "$playlist_flag" -f "ba/b" -x --audio-format mp3 --audio-quality 0 \
+           --embed-metadata --embed-thumbnail --ppa "EmbedThumbnail+ffmpeg_o:-c:v mjpeg -id3v2_version 3" \
+           --no-check-certificate -o "$final_path" "$target_link"
            
     preset_msg="[OK] Ready. Bon Appetit Mon Ami."
 }
 
-# 2. Модуль для MP4
+# 2. MP4 module
 get_mp4() {
     local target_link="$1"
+    local playlist_flag="$2"
+    local final_path="$3"
+    
     echo ">> [MP4] Downloading Video, Please Wait..."
     
     yt-dlp --cookies-from-browser "$COOKIES" --js-runtimes node \
            --downloader aria2c --downloader-args "$ARIA_ARGS" \
-           --no-playlist -S "ext:mp4:m4a" --remux-video mp4 \
+           "$playlist_flag" -S "ext:mp4:m4a" --remux-video mp4 \
            --embed-metadata --embed-thumbnail \
-           --no-check-certificate -o "$OUT_PATH" "$target_link"
+           --no-check-certificate -o "$final_path" "$target_link"
            
     preset_msg="[OK] Ready. Bon Appetit Mon Ami."
 }
 
-# 3. Модуль для Прямого скачивания тяжелых файлов (Aria2c соло)
-get_link() {
-    local target_link="$1"
-    echo ">> [Link] The Think On Link, Please Wait"
-    
-    # Качаем напрямую на рабочий стол средствами чистой арии
-    aria2c -c -x 16 -s 16 -k 1M -d "$HOME/Desktop" "$target_link"
-    
-    preset_msg="[OK] Ready. Bon Appetit Mon Ami."
-}
 
-# 4. Модуль для FLAC (Исправленный под нативные теги)
+# 3. Flac module
 get_flac() {
     local target_link="$1"
+    local playlist_flag="$2"
+    local final_path="$3"
+    
     echo ">> [FLAC] Hi-Fi Audio Downloading, Please Wait..."
     
     yt-dlp --cookies-from-browser "$COOKIES" --js-runtimes node \
            --downloader aria2c --downloader-args "$ARIA_ARGS" \
-           --no-playlist -f "ba/b" -x --audio-format flac \
-           --embed-metadata --embed-thumbnail \
-           --no-check-certificate -o "$OUT_PATH" "$target_link"
+           "$playlist_flag" -f "ba/b" -x --audio-format flac \
+           --embed-metadata --embed-thumbnail --ppa "EmbedThumbnail+ffmpeg_o:-c:v mjpeg -id3v2_version 3" \
+           --no-check-certificate -o "$final_path" "$target_link"
            
     preset_msg="[OK] Ready. Bon Appetit Mon Ami."
 }
 
-# --- Мозги, не трогать, переебет! ---
+# 4 Link (Aria2) module
+get_link() {
+    local target_link="$1"
+    local work_dir="$2"
+    
+    echo ">> [Link] The Thing On Link, Please Wait"
+    
+    aria2c -c -x 16 -s 16 -k 1M -d "$work_dir" "$target_link"
+           
+    preset_msg="[OK] Ready. Bon Appetit Mon Ami."
+}
+
+
+
+# --- Brain, do not touch, pereebet! ---
 while true; do
     preset_msg=""
-
+    
     read -e -p ">>> Link: " input
-    input=$(echo "$input" | xargs)
     if [[ -z "$input" ]]; then continue; fi
     
-    # Кнопка паники и выхода
     if [[ "${input,,}" == *"-exit"* || "${input,,}" == "shutup" ]]; then
-        echo "Its my final message. Goodbye..."
+        echo "It's my final message. Goodbye..."
         break
     fi
 
-    # Разделяем строку на флаг и ссылку
-    flag="${input##* }"
-    link="${input% *}"
+    # String to parts
+    read -a args <<< "$input"
+    TARGET_LINK=""
+    FORMAT_FLAG=""
+    DIR_FLAG="-D" #Note: Default dir Desktop, if you do not choose any paths
 
-    link="${link%\"}"
-    link="${link#\"}"
-
-    # Значения по умолчанию (Одиночный файл)
-    PLAYLIST_FLAG="--no-playlist"
-    OUT_PATH="$HOME/Desktop/%(title)s.%(ext)s"
-
-    # Прозваниваем только если это запросы к yt-dlp (-3, -4, -5)
-    if [[ "$flag" == "-3" || "$flag" == "-4" || "$flag" == "-5" ]]; then
-        echo ">> [System] Probing link..."
-        
-        # Запрашиваем количество элементов (2>/dev/null глушит лишние ошибки, чтобы терминал был чистым)
-        p_count=$(yt-dlp --flat-playlist --print playlist_count "$link" 2>/dev/null | head -n 1)
-        
-        # Регулярное выражение ^[0-9]+$ проверяет, что ответ состоит только из цифр.
-        # -gt 1 проверяет, что цифра больше единицы.
-        if [[ "$p_count" =~ ^[0-9]+$ ]] && [[ "$p_count" -gt 1 ]]; then
-            echo ">> [System] Playlist detected! ($p_count items). Creating directory..."
-            # Переключаем реле на плейлист
-            PLAYLIST_FLAG="--yes-playlist"
-            # Формируем путь с папкой (название плейлиста) и нумерацией
-            OUT_PATH="$HOME/Desktop/%(playlist_title)s/%(playlist_index)02d - %(title)s.%(ext)s"
-        else
-            echo ">> [System] Single file detected."
+    # Parts magic
+    for item in "${args[@]}"; do
+        if [[ "$item" == http* || "$item" == www* || "$item" == *youtube.com* || "$item" == *youtu.be* ]]; then
+            TARGET_LINK="${item%\"}" # Сразу чистим от кавычек
+            TARGET_LINK="${TARGET_LINK#\"}"
+        elif [[ "$item" == "-3" || "$item" == "-4" || "$item" == "-5" || "$item" == "-6" ]]; then
+            FORMAT_FLAG="$item"
+        elif [[ "$item" == "-D" || "$item" == "-C" || "$item" == "-M" ]]; then # D-Desktop, C-Clips, M-Music
+            DIR_FLAG="$item"
         fi
-    fi
-    # ---------------------------------------------------------
+    done
 
-    # Распределительный щит модулей (передаем новые переменные внутрь)
-    case "$flag" in
-        -3) get_mp3 "$link" "$PLAYLIST_FLAG" "$OUT_PATH" ;;
-        -4) get_mp4 "$link" "$PLAYLIST_FLAG" "$OUT_PATH" ;;
-        -5) get_flac "$link" "$PLAYLIST_FLAG" "$OUT_PATH" ;;
-        -6) get_link "$link" ;;
-         *)
-            echo "[!] Err: Unknown Pleasures. Please Choose: [-3], [-4], [-5] or [-6]."
-            continue
-            ;;
+    # Err message
+    if [[ -z "$TARGET_LINK" || -z "$FORMAT_FLAG" ]]; then
+        echo "[!] Err: Unknown Pleasures. Please Choose flag: [-3], [-4], [-5] or [-6], and dir"
+        continue
+    fi
+
+    # Dirs call
+    case "$DIR_FLAG" in
+        -D) WORK_DIR="$DIR_DESKTOP" ;;
+        -C) WORK_DIR="$DIR_CLIPS" ;;
+        -M) WORK_DIR="$DIR_MUSIC" ;;
     esac
 
-    # Разрядка буфера отложенных сообщений
+    # Playlist check
+    if [[ "$FORMAT_FLAG" != "-6" ]]; then
+        echo ">> [System] Probing link..."
+        p_count=$(yt-dlp --flat-playlist --print playlist_count "$TARGET_LINK" 2>/dev/null | head -n 1)
+        
+        if [[ "$p_count" =~ ^[0-9]+$ ]] && [[ "$p_count" -gt 1 ]]; then
+            echo ">> [System] Playlist detected! ($p_count items)."
+            PLAY_FLAG="--yes-playlist"
+            FINAL_PATH="${WORK_DIR}/${TPL_PLAYLIST}"
+        else
+            echo ">> [System] Single file detected."
+            PLAY_FLAG="--no-playlist"
+            FINAL_PATH="${WORK_DIR}/${TPL_SINGLE}"
+        fi
+    fi
+
+    # 5. Module call
+    case "$FORMAT_FLAG" in
+        -3) get_mp3 "$TARGET_LINK" "$PLAY_FLAG" "$FINAL_PATH" ;;
+        -4) get_mp4 "$TARGET_LINK" "$PLAY_FLAG" "$FINAL_PATH" ;;
+        -5) get_flac "$TARGET_LINK" "$PLAY_FLAG" "$FINAL_PATH" ;;
+        -6) get_link "$TARGET_LINK" "$WORK_DIR" ;;
+    esac
+
     if [[ -n "$preset_msg" ]]; then
         echo "$preset_msg"
     fi
-    
     echo "----------------------------------------------------"
 done
