@@ -3,7 +3,7 @@
 
 An easy and fast download MP3, MP4, Flac from Youtube and other files with Aria2
 
-![preview](https://github.com/OwlMyName/Yt-Dlp-And-Aria2-TUI-Script/blob/1da75c7381cfe3e091afd95be6e9296e4c5ed311/preview.mp4)
+![preview](https://github.com/OwlMyName/Yt-Dlp-And-Aria2-TUI-Script/blob/7253a057970e7322d54564b4317687719dc47caf/demo.gif)
 
 > Note: emulator WezTerm with ASCII art on background: not a part of script, sorry
 
