@@ -8,7 +8,7 @@ An easy and fast download MP3, MP4, Flac from Youtube and other files with Aria2
 > Note: emulator WezTerm with ASCII art on background: not a part of script, sorry!
 
 # Featuring:
-Easily download any file from YouTube and other platforms without a GUI, just drop link with flag and file download. Only text and minimalistic, only terminal only hardcore!
+Easily download any file from YouTube and other platforms without a GUI, just drop link with flags and file download. Only text and minimalistic, only terminal only hardcore!
 And soul with Easter eggs included.
 
 This is my first steps in code, and I want to make the really good, easy and powerfully, but... Everything will happen, but not right away. And this takes and this text and repository too.
@@ -27,7 +27,7 @@ This script was created with AI assistance, but I personally write and moderate 
 | `-6` | Link | Direct link output |
 | `-exit` | Exit script | Works without link |
 
-| Directories | Path | Description |
+| Directories flag| Path | Description |
 | --- | --- | ---|
 | `-D` | "$HOME/Desktop" | Save file to Desktop |
 | `-C` | "$HOME/Videos/Clips" | Save file to Clips
@@ -47,7 +47,6 @@ This note you see at the every start of script.
 * Ffmpeg
 * Nodejs
 
-And rewrite path to Cookies browser (This make to unlock 18+ and other content)
 
 > Note: if you on Ubuntu, Debian, some Fedora distribution or on other OS with outdated version for Yt-DLP- build from source. Official repository: https://github.com/yt-dlp/yt-dlp
 
