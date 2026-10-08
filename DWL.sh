@@ -23,7 +23,7 @@ echo ""
 echo "[-exit] = Exit"
 echo "======================================================================="
 
-# --- Settings ---
+# === Settings ===
 # Paths and for cookies
 COOKIES="[Browser]: [Path]" #Note: write without [], just "firefox: path". All types of browsers learn on official repo of Yt-Dlp
 
@@ -39,8 +39,27 @@ TPL_PLAYLIST="%(playlist_title)s/%(playlist_index)02d - %(title)s.%(ext)s" #Note
 # Template for Aria2
 ARIA_ARGS="aria2c:-c -x 16 -s 16 -k 1M"
 
+# === Guts and Parts ===
 
-# --- Modules ---
+# 1. Timecode module (invalid input = ignored, full download)
+get_timecode() {
+    local tc="$1"
+    local t='[0-9]{1,2}(:[0-5][0-9]){1,2}'
+
+    if [[ "$tc" =~ ^${t}(-${t})?$ ]]; then
+        [[ "$tc" == *-* ]] || tc="${tc}-inf"        # 3:00 -> 3:00-inf
+        SECTION_ARGS=(--download-sections "*${tc}" --force-keyframes-at-cuts)
+        FINAL_PATH="${FINAL_PATH%'.%(ext)s'} [${tc//:/.}].%(ext)s"
+        echo ">> [System] Clip mode: $tc"
+    else
+        echo ">> [System] Bad timecode '$tc', ignoring. Downloading full."
+    fi
+}
+ 
+
+
+# === Modules ===
+
 # 1. MP3 module
 get_mp3() {
     local target_link="$1"
@@ -53,7 +72,8 @@ get_mp3() {
            --downloader aria2c --downloader-args "$ARIA_ARGS" \
            "$playlist_flag" -f "ba/b" -x --audio-format mp3 --audio-quality 0 \
            --embed-metadata --embed-thumbnail --ppa "EmbedThumbnail+ffmpeg_o:-c:v mjpeg -id3v2_version 3" \
-           --no-check-certificate -o "$final_path" "$target_link"
+           --no-check-certificate "${SECTION_ARGS[@]}" -o "$final_path" "$target_link" 
+#          --no-check-certificate -o "$final_path" "$target_link"
            
     preset_msg="[OK] Ready. Bon Appetit Mon Ami."
 }
@@ -70,7 +90,8 @@ get_mp4() {
            --downloader aria2c --downloader-args "$ARIA_ARGS" \
            "$playlist_flag" -S "ext:mp4:m4a" --remux-video mp4 \
            --embed-metadata --embed-thumbnail \
-           --no-check-certificate -o "$final_path" "$target_link"
+           --no-check-certificate "${SECTION_ARGS[@]}" -o "$final_path" "$target_link" 
+#          --no-check-certificate -o "$final_path" "$target_link"
            
     preset_msg="[OK] Ready. Bon Appetit Mon Ami."
 }
@@ -88,7 +109,8 @@ get_flac() {
            --downloader aria2c --downloader-args "$ARIA_ARGS" \
            "$playlist_flag" -f "ba/b" -x --audio-format flac \
            --embed-metadata --embed-thumbnail --ppa "EmbedThumbnail+ffmpeg_o:-c:v mjpeg -id3v2_version 3" \
-           --no-check-certificate -o "$final_path" "$target_link"
+           --no-check-certificate "${SECTION_ARGS[@]}" -o "$final_path" "$target_link" 
+#          --no-check-certificate -o "$final_path" "$target_link"
            
     preset_msg="[OK] Ready. Bon Appetit Mon Ami."
 }
@@ -107,7 +129,7 @@ get_link() {
 
 
 
-# --- Brain, do not touch, pereebet! ---
+# === Brain, do not touch, pereebet! ===
 while true; do
     preset_msg=""
     
@@ -124,6 +146,8 @@ while true; do
     TARGET_LINK=""
     FORMAT_FLAG=""
     DIR_FLAG="-D" #Note: Default dir Desktop, if you do not choose any paths
+    TIME_RANGE=""
+
 
     # Parts magic
     for item in "${args[@]}"; do
@@ -134,6 +158,8 @@ while true; do
             FORMAT_FLAG="$item"
         elif [[ "$item" == "-D" || "$item" == "-C" || "$item" == "-M" ]]; then # D-Desktop, C-Clips, M-Music
             DIR_FLAG="$item"
+        elif [[ "$item" == *:* ]]; then            
+            TIME_RANGE="$item"
         fi
     done
 
@@ -142,6 +168,7 @@ while true; do
         echo "[!] Err: Unknown Pleasures. Please Choose flag: [-3], [-4], [-5] or [-6], and dir"
         continue
     fi
+
 
     # Dirs call
     case "$DIR_FLAG" in
@@ -165,6 +192,11 @@ while true; do
             FINAL_PATH="${WORK_DIR}/${TPL_SINGLE}"
         fi
     fi
+
+    SECTION_ARGS=()                                
+    [[ -n "$TIME_RANGE" && "$FORMAT_FLAG" != "-6" ]] && get_timecode "$TIME_RANGE"
+
+
 
     # 5. Module call
     case "$FORMAT_FLAG" in
