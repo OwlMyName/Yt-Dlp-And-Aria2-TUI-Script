@@ -20,6 +20,13 @@ echo "[-D] = Desktop"
 echo "[-C] = Clips"
 echo "[-M] = Music"
 echo ""
+echo "John Connor, it is time!"
+echo "Default 00:00"
+echo "[33:01] = Timecode from"
+echo "[33:01-34:01] = 1 Min Part For Example "
+echo ""
+echo "Service Command"
+echo "[-upd] = Update"
 echo "[-exit] = Exit"
 echo "======================================================================="
 
@@ -137,9 +144,16 @@ while true; do
     if [[ -z "$input" ]]; then continue; fi
     
     if [[ "${input,,}" == *"-exit"* || "${input,,}" == "shutup" ]]; then
-        echo "It's my final message. Goodbye..."
+        echo ">> [System] It's my final message. Goodbye..."
         break
     fi
+
+    if [[ "${input,,}" == "-upd" ]]; then
+        echo ">> [System] Updating!"
+        yt-dlp -U
+        continue
+    fi
+
 
     # String to parts
     read -a args <<< "$input"
