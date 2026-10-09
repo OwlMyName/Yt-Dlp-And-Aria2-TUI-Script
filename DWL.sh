@@ -7,7 +7,8 @@ echo -ne "\033]0;Download Hub\a"
 
 # Note menu
 echo "======================= Ultimate Devil Download ======================="
-echo "Format: [Link] [Flag] (For example: https://youtu.be/... -4)"
+echo "Format: [Link] [Flag] +Optional [Path] [Timecode]"
+echo "For Example:https://youtu.be/... -4 -D 33:01-34:01"
 echo ""
 echo "Are you gonna make the right choice?"
 echo "[-3] = MP3"
