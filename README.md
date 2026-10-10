@@ -1,7 +1,7 @@
 # Ultimate Devil Download
 > **Yt-Dlp & Aria2 TUI Download Script**
 
-An easy and fast download MP3, MP4, Flac from Youtube and other files with Aria2
+An easy and fast way to download MP3, MP4 and FLAC from YouTube, plus any file via Aria2.
 
 ![preview](https://github.com/OwlMyName/Yt-Dlp-And-Aria2-TUI-Script/blob/7253a057970e7322d54564b4317687719dc47caf/demo.gif)
 
@@ -17,7 +17,9 @@ This script was created with AI assistance, but I personally write and moderate 
 
 ## How it Works
 
-* Format: [Link] [Flag] (For Example:https://youtu.be/... -4 -D 33:01-34:01).
+* **Format: [Link] [Flag] +Optional [Path] [Timecode]**
+
+>  **For Example:https://youtu.be/... -4 -D 33:01-34:01**
 
 | Flag | Action | Note |
 | --- | --- | --- |
@@ -30,20 +32,20 @@ This script was created with AI assistance, but I personally write and moderate 
 | Directories flag| Path | Description |
 | --- | --- | ---|
 | `-D` | "$HOME/Desktop" | Save file to Desktop |
-| `-C` | "$HOME/Videos/Clips" | Save file to Clips
-| `-M` | "$HOME/Music" | Save file to Music
+| `-C` | "$HOME/Videos/Clips" | Save file to Clips |
+| `-M` | "$HOME/Music" | Save file to Music |
 
 |Timecodes| Description |
 | --- | --- |
-| `33:01` | Dowload from this time to end
-| `33:01-34:01` | For example, one minute fragment from 33:01 to 34:01
+| `33:01` | Download from this time to end |
+| `33:01-34:01` | For example, one minute fragment from 33:01 to 34:01 |
 
 |Service Command| Description | Note
 | --- | --- | --- |
-| `-exit` | Exit script
-| `-upd` | Update Yt-Dlp | Only "yt-dlp -U" command, sorry 
+| `-exit` | Exit script |
+| `-upd` | Update Yt-Dlp | Only "yt-dlp -U" command, sorry |
 
-
+> Note: Timecodes are strict: `M:SS` or `H:MM:SS`, no spaces. An invalid timecode is ignored and the whole video is downloaded. Clips are cut by ffmpeg, so Aria2 doesn't speed them up.
 
 This note you see at the every start of script.
 
@@ -74,5 +76,5 @@ Simplicity, a straightforward text interface, speed, and low hardware resource u
 Make file executable:
 > chmod +x DWL.sh
 
-Make an simlink on directory /usr/local/bin/ to call script one command.
+Make an symlink on directory /usr/local/bin/ to call script one command.
 > sudo ln -s /path/to/script-dir/DWL.sh /usr/local/bin/dwl
